@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>tvwiki-downloader</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="titlebar">
+    <div class="titlebar-name">tvwiki-downloader</div>
+    <div class="titlebar-buttons">
+      <button id="btn-min" class="tb-btn" aria-label="최소화">&#x2014;</button>
+      <button id="btn-close" class="tb-btn" aria-label="닫기">&#x2715;</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <label class="field-label" for="url-input">영상 페이지 링크</label>
+      <div class="url-row">
+        <input id="url-input" type="url" placeholder="https://tvwiki47.net/movie/..." spellcheck="false">
+        <button id="btn-paste" class="ghost">붙여넣기</button>
+      </div>
+      <div class="dir-row">
+        <span id="dir-label" class="dim"></span>
+        <button id="btn-dir" class="ghost">폴더 변경</button>
+      </div>
+      <div class="options-row">
+        <label class="check">
+          <input id="chk-probe" type="checkbox"> 검증만 (앞 2개 세그먼트)
+        </label>
+        <label class="range-wrap">
+          병렬 <span id="conc-val">8</span>
+          <input id="rng-conc" type="range" min="1" max="16" value="8">
+        </label>
+      </div>
+      <button id="btn-start" class="primary">다운로드 시작</button>
+    </section>
+
+    <section class="card" id="status-card" hidden>
+      <div id="video-title" class="video-title"></div>
+      <ol class="stages" id="stages"></ol>
+      <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+      <div class="progress-meta">
+        <span id="progress-text"></span>
+        <button id="btn-cancel" class="ghost danger">취소</button>
+      </div>
+      <pre id="log" class="log"></pre>
+      <button id="btn-open" class="primary" hidden>저장 위치 열기</button>
+    </section>
+  </main>
+<script src="renderer.js"></script>
+</body>
+</html>
