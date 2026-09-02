@@ -1,8 +1,12 @@
 // src/remux.js
 'use strict';
 const { spawn } = require('node:child_process');
+const path = require('node:path');
 
 function ffmpegPath() {
+  if (process.platform === 'win32' && process.resourcesPath) {
+    return path.join(process.resourcesPath, 'ffmpeg.exe');
+  }
   try { return require('ffmpeg-static'); } catch { return 'ffmpeg'; }
 }
 

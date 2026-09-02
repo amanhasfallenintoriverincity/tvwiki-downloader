@@ -2,21 +2,65 @@
   "name": "tvwiki-desktop",
   "version": "1.0.0",
   "description": "티비위키 임베드 영상 다운로더 데스크톱 앱",
+  "author": "amanhasfallenintoriverincity",
   "main": "src/main.js",
   "scripts": {
     "test": "node --test",
     "start": "electron .",
-    "probe": "electron scripts/probe.js"
+    "probe": "electron scripts/probe.js",
+    "build:renderer": "npm --prefix renderer-app run build",
+    "dist:win": "npm run build:renderer && electron-builder --win nsis portable --x64"
   },
   "keywords": [],
   "type": "commonjs",
   "devDependencies": {
-    "electron": "^44.0.0"
+    "electron": "^44.0.0",
+    "electron-builder": "^26.15.3"
   },
   "dependencies": {
     "ffmpeg-static": "^5.3.0"
   },
+  "optionalDependencies": {
+    "@ffmpeg-installer/win32-x64": "^4.1.0"
+  },
   "allowScripts": {
     "ffmpeg-static@5.3.0": true
+  },
+  "build": {
+    "appId": "com.amanhasfallenintoriverincity.tvwikidownloader",
+    "productName": "TVWiki Downloader",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "src/**/*",
+      "renderer-app/dist/**/*",
+      "package.json",
+      "!node_modules/ffmpeg-static/**",
+      "!node_modules/@ffmpeg-installer/**"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe",
+        "to": "ffmpeg.exe"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "artifactName": "${productName}-Setup-${version}-${arch}.${ext}",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}-${arch}.${ext}"
+    }
   }
 }

@@ -48,21 +48,17 @@ async function downloadSegments({ urls, key, iv, outFile, concurrency = 8,
       });
     }
   }
-  let out;
   try {
     await Promise.all(Array.from({ length: Math.min(concurrency, urls.length) }, worker));
-    // 순서대로 병합: 중간 .tmp 파일 없이 .parts에서 직접 스트리밍
-    out = fs.createWriteStream(outFile);
-    for (let i = 0; i < urls.length; i++) {
-      const rs = fs.createReadStream(`${tmpDir}/${String(i).padStart(6, '0')}.ts`);
-      await pipeline(rs, out, { end: false });
+    // 하나의 pipeline으로 순서대로 병합해 출력 스트림 리스너가 누적되지 않게 한다.
+    async function* orderedParts() {
+      for (let i = 0; i < urls.length; i++) {
+        const partPath = `${tmpDir}/${String(i).padStart(6, '0')}.ts`;
+        for await (const chunk of fs.createReadStream(partPath)) yield chunk;
+      }
     }
-    await new Promise((resolve, reject) => {
-      out.on('error', reject);
-      out.end(resolve);
-    });
+    await pipeline(orderedParts(), fs.createWriteStream(outFile));
   } catch (err) {
-    if (out) await new Promise((r) => out.destroy(r)).catch(() => {});
     await fsp.unlink(outFile).catch(() => {});
     throw err;
   } finally {

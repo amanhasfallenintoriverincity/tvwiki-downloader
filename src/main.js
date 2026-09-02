@@ -9,6 +9,7 @@ const { parseManifest } = require('./manifest');
 const { fetchManifest, remuxToMp4 } = require('./remux');
 const { downloadSegments } = require('./downloader');
 const { isSeasonPage, parseEpisodeList, selectEpisodes } = require('./episodes');
+const { sanitizeFilename } = require('./filename');
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
@@ -42,7 +43,8 @@ async function downloadOne({ url, outdir, concurrency, probe }, myCtl) {
     pageUrl: url,
     log: (m) => send('log', m),
   });
-  const cleanTitle = (title || 'video').replace(/\s*다시보기.*$|\s*-\s*티비위키.*$/, '').trim() || 'video';
+  const displayTitle = (title || 'video').replace(/\s*다시보기.*$|\s*-\s*티비위키.*$/, '').trim() || 'video';
+  const cleanTitle = sanitizeFilename(displayTitle);
   send('meta', { title: cleanTitle, segments: info.segments, duration: info.duration });
 
   stage('매니페스트');

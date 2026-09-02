@@ -54,6 +54,35 @@ test('병렬 다운로드 + 복호 + 순서 보존', async () => {
   fs.rmSync(outDir, { recursive: true, force: true });
 });
 
+test('많은 세그먼트를 병합해도 WriteStream 리스너 경고를 만들지 않는다', async () => {
+  const segments = Array.from({ length: 12 }, (_, i) => ({ bytes: Buffer.from(`segment-${i}\n`) }));
+  const server = await startMockServer(segments);
+  const { port } = server.address();
+  const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tvdl-listeners-'));
+  const outFile = path.join(outDir, 'out.ts');
+  const warnings = [];
+  const onWarning = (warning) => {
+    if (warning.name === 'MaxListenersExceededWarning') warnings.push(warning);
+  };
+  process.on('warning', onWarning);
+
+  try {
+    await downloadSegments({
+      urls: segments.map((_, i) => `http://127.0.0.1:${port}/seg?i=${i}`),
+      outFile,
+      concurrency: 4,
+    });
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.deepStrictEqual(fs.readFileSync(outFile), Buffer.concat(segments.map((segment) => segment.bytes)));
+    assert.deepStrictEqual(warnings, []);
+  } finally {
+    process.off('warning', onWarning);
+    server.closeAllConnections?.();
+    await new Promise((resolve) => server.close(resolve));
+    fs.rmSync(outDir, { recursive: true, force: true });
+  }
+});
+
 test('500 응답은 재시도 후 성공', async () => {
   const key = crypto.randomBytes(16);
   const iv = crypto.randomBytes(16);
